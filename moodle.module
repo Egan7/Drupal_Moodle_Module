@@ -34,7 +34,7 @@ function insertToMoodle($form, &$form_state)
     $db_array = array(
       'database' => 'moodle',
       'username' => 'root',
-      'password' => '123root',
+      'password' => 'password',
       'host' => 'localhost', 
       'driver' => 'mysql',
     );  
@@ -81,7 +81,7 @@ function updateMoodle($form, &$form_state)
       $db_array = array(
         'database' => 'moodle',
         'username' => 'root', 
-        'password' => '123root', 
+        'password' => 'password', 
         'host' => 'localhost', 
         'driver' => 'mysql',
       );
@@ -117,10 +117,6 @@ function storeCredentials($form, &$form_state)
 	
 	//moodle_session("username", $uname);
 	moodle_session("password", $upass);
-	
-	$url = 'http://localhost/moodle/login/index.php';
-	$post_data = array( 'username' => $uname,
-                        'password' => $upass );
 }
 
 /**
