@@ -30,14 +30,7 @@ function moodle_form_alter(&$form, &$form_state, $form_id) {
 }
 
 function insertToMoodle($form, &$form_state)
-{
-    
-   //add the user to the remote-service role when he creates his account.
-     $uid = $form_state['values']['uid']; // User ID of user that you want to add role to.
-     $role_name = 'remote-service'; // The name of the role to add.
-     if ($role = user_role_load_by_name($role_name))
-       user_multiple_role_edit(array($uid), 'add_role', $role->rid);
-	   
+{	   
     $db_array = array(
       'database' => 'moodle',
       'username' => 'root',
@@ -135,8 +128,6 @@ function storeCredentials($form, &$form_state)
   */
 function moodle_session($key, $value = NULL) {
   
-  $_SESSION[$key] = $value;
-/*
   static $storage;
   if ($value)
   {
@@ -147,5 +138,4 @@ function moodle_session($key, $value = NULL) {
     $storage[$key] = $_SESSION[$key];
 
   return $storage[$key];
-  */
 }

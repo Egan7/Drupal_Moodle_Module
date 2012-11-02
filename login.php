@@ -1,9 +1,10 @@
 <?php
 
 require_once './includes/bootstrap.inc';
-drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL); // This makes all Drupal functionality available to my script
-global $user; // This makes the user's $user object available to my script
+drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+global $user; 
 $uname = $user->name;
+$upass = $_SESSION['password'];
 print $user->name;
 ?>
 	<form id="login" method="post" action="http://localhost/moodle/login/index.php">
