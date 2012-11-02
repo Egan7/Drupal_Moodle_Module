@@ -1,0 +1,10 @@
+;$Id$
+
+name = moodle
+description = A moodle module that gives SSO.
+package = Drupal 7 Development
+core = 7.x
+files[] = moodle.module
+
+;dependencies[] = autoload
+;php = 5.3

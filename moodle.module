@@ -1,0 +1,151 @@
+<?php
+//module_load_include('inc', 'moodle');
+/**
+ * @file
+ * A module that intergrades Drupal and Moodle LMS.
+ *
+ * This module creates users on Moodle Database
+ * uppon creation on Drupal site. Also updates Moodle users if
+ * changes on Drupal user's profile happens.
+ */
+
+$uid=0;
+$uname = "";
+$upass = "";
+
+/**
+ * Implements hook_form_alter().
+ */
+function moodle_form_alter(&$form, &$form_state, $form_id) {
+  //drupal_set_message($form_id);
+  
+  if($form_id == "user_register_form")
+     $form['#submit'][] = "insertToMoodle";
+
+  if($form_id == "user_profile_form")
+     $form['#submit'][] = "updateMoodle";
+
+  if($form_id == "user_login_block")
+     $form['#submit'][] = "storeCredentials";
+}
+
+function insertToMoodle($form, &$form_state)
+{
+    
+   //add the user to the remote-service role when he creates his account.
+     $uid = $form_state['values']['uid']; // User ID of user that you want to add role to.
+     $role_name = 'remote-service'; // The name of the role to add.
+     if ($role = user_role_load_by_name($role_name))
+       user_multiple_role_edit(array($uid), 'add_role', $role->rid);
+	   
+    $db_array = array(
+      'database' => 'moodle',
+      'username' => 'root',
+      'password' => '123root',
+      'host' => 'localhost', 
+      'driver' => 'mysql',
+    );  
+	
+	//Drupal the 1st time creates a random password. Uncomment the line below to see the password in plain text.
+	drupal_set_message($form_state['values']['pass']);
+	
+	//Connect to moodle database...
+    try {
+	    Database::addConnectionInfo('OurDatabase', 'default', $db_array);
+	    db_set_active('OurDatabase');
+	    $db1 = Database::getConnection();
+        }
+        catch (Exception $e) {	
+		      drupal_set_message("Error connecting to external database", 'warning');
+              db_set_active();
+        }
+		
+	//...and create user with the same username, email and password (md5 hash)	
+		db_insert('mdl_user')
+         ->fields(array(
+		 'id' => $form_state['values']['uid'],
+		 'auth' => "manual",
+		 'confirmed' => 1,
+		 'mnethostid' => 1,
+         'username' => $form_state['values']['name'],
+         'password' => MD5($form_state['values']['pass']),
+		 'email' => $form_state['values']['mail']
+         ))
+        ->execute();
+		
+        db_set_active();
+}
+
+/**
+  * Check if password changed and get the new values from
+  * users profile form i.e new password and update moodle table.
+  */
+function updateMoodle($form, &$form_state)
+{   
+   //if password changed connect to Moodle database and update. Here you can update any fields that are the same between the tables.
+   if(MD5($form_state['values']['pass']) != MD5(""))
+   {
+      $db_array = array(
+        'database' => 'moodle',
+        'username' => 'root', 
+        'password' => '123root', 
+        'host' => 'localhost', 
+        'driver' => 'mysql',
+      );
+	  
+	  Database::addConnectionInfo('OurDatabase', 'default', $db_array);
+	  db_set_active('OurDatabase');
+      drupal_set_message("update triggered: password changed");
+	  
+	  //these are the fields i used if more update those too. 
+      db_update('mdl_user')
+         ->fields(array(
+         'password' => MD5($form_state['values']['pass']),
+		 'email' => $form_state['values']['mail']
+         ))
+		 ->condition('id', $form_state['values']['uid'], '=' )
+        ->execute();
+		
+		db_set_active();
+    }
+	else
+	{
+	  //Update all the other fields except password.
+	}
+}
+/**
+  * Store username and password for later use.
+  */
+function storeCredentials($form, &$form_state)
+{
+    //$uid = $GLOBALS['user']->uid;
+    $uname = $form_state['values']['name'];
+	$upass = $form_state['values']['pass'];
+	
+	//moodle_session("username", $uname);
+	moodle_session("password", $upass);
+	
+	$url = 'http://localhost/moodle/login/index.php';
+	$post_data = array( 'username' => $uname,
+                        'password' => $upass );
+}
+
+/**
+  *store username and password as session variables, to access them later in the login page.
+  */
+function moodle_session($key, $value = NULL) {
+  
+  $_SESSION[$key] = $value;
+/*
+  static $storage;
+  if ($value)
+  {
+    $storage[$key] = $value ;
+    $_SESSION[$key] = $value ;
+  }
+  else if (empty($storage[$key]) && isset($_SESSION[$key]))
+    $storage[$key] = $_SESSION[$key];
+
+  return $storage[$key];
+  */
+}
