@@ -1,7 +1,18 @@
 <?php
+$currdir=getcwd();
 
-require_once './includes/bootstrap.inc';
-drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+$your_drupal_directory = $_SERVER['DOCUMENT_ROOT'];
+
+chdir($your_drupal_directory);
+
+require_once("./includes/bootstrap.inc");
+
+$cookie_domain = $_SERVER['HTTP_HOST'];
+
+drupal_bootstrap( DRUPAL_BOOTSTRAP_FULL );
+
+chdir($currdir);
+
 global $user; 
 $uname = $user->name;
 $upass = $_SESSION['password'];
